@@ -14,5 +14,9 @@
       packages =
         forAllSystems (pkgs: { default = pkgs.callPackage ./dashp.nix { }; });
 
+      overlays.default = final: prev: {
+        dashp = prev.callPackage ./dashp.nix { };
+      };
+
     };
 }
