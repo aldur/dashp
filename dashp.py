@@ -90,22 +90,30 @@ def launch_fzf(db: sqlite3.Connection) -> str | None:
                 "--accept-nth",
                 "-1",
                 "--bind",
-                "enter:execute(w3m {-1})",
+                "enter:execute(w3m '{-1}')",
                 "--bind",
-                "ctrl-v:execute(echo {-1})+abort",
+                "ctrl-v:execute(echo '{-1}')+abort",
             ],
             input=fzf_input,
             capture_output=True,
             text=True,
-            check=True,
+            check=False,
         )
+
+        # Exit code 130 means FZF was interrupted with Esc or Ctrl-C
+        if fzf_process.returncode == 130:
+            return None
+
+        if fzf_process.returncode != 0:
+            logging.error(
+                "FZF failed to run with exit code: %d", fzf_process.returncode
+            )
+            sys.exit(fzf_process.returncode)
 
         if selected_line := fzf_process.stdout.strip():
             return selected_line
     except FileNotFoundError:
-        logging.error("FZF is not installed. Please install FZF to use this script.")
-    except subprocess.CalledProcessError:
-        logging.error("FZF failed to run.")
+        logging.error("FZF is not installed.")
 
     return None
 
